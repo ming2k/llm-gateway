@@ -11,7 +11,8 @@ deploy:
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
-    - ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    - chmod 644 ~/.ssh/config
   script:
     - ssh $SERVER_USER@$SERVER_IP "mkdir -p ~/$CI_PROJECT_PATH"
     - scp deploy.sh $SERVER_USER@$SERVER_IP:~/$CI_PROJECT_PATH/
