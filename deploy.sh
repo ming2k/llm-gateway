@@ -5,8 +5,10 @@ REPO_URL="https://gitlab.com/ming2k/llm-gateway.git"
 # if APP_NAME exists, remove the directory
 if [ -d "$APP_NAME" ]; then
     rm -rf $APP_NAME
+    echo "Removed existing $APP_NAME directory."
 fi
 
+echo "Cloning repository..."
 git clone "$REPO_URL"
 
 # Build new image
