@@ -15,7 +15,7 @@ deploy:
     - chmod 644 ~/.ssh/config
     - ssh $SERVER_USER@$SERVER_IP "hostname" # test ssh
   script:
-    - scp deploy.sh $SERVER_USER@$SERVER_IP:~/$CI_PROJECT_NAME/
+    - scp deploy.sh $SERVER_USER@$SERVER_IP:~/
     - |
       GC_PRIVATE_KEY_BASE64=$(echo "$GC_PRIVATE_KEY" | base64 -w 0)
       ssh $SERVER_USER@$SERVER_IP << EOF
