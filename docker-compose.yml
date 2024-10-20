@@ -11,10 +11,10 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-postgres}
       - DB_NAME=${DB_NAME:-llm_gateway}
       - DB_PORT=${DB_PORT:-5432}
-      - PROJECT_ID=${PROJECT_ID}
-      - PRIVATE_KEY_ID=${PRIVATE_KEY_ID}
-      - PRIVATE_KEY=${PRIVATE_KEY}
-      - CLIENT_EMAIL=${CLIENT_EMAIL}
+      - GC_PROJECT_ID=${GC_PROJECT_ID}
+      - GC_PRIVATE_KEY_ID=${GC_PRIVATE_KEY_ID}
+      - GC_PRIVATE_KEY=${GC_PRIVATE_KEY}
+      - GC_CLIENT_EMAIL=${GC_CLIENT_EMAIL}
     depends_on:
       - db
 

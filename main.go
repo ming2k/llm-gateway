@@ -158,10 +158,10 @@ func handleForwardToEndpoint(w http.ResponseWriter, r *http.Request) {
 
 	// ... [其余的代码保持不变] ...
 
-	projectID := os.Getenv("GC_PROJECT_ID")
+	gcProjectID := os.Getenv("GC_PROJECT_ID")
 
 	url := fmt.Sprintf("https://%s-aiplatform.googleapis.com/v1/projects/%s/locations/%s/publishers/anthropic/models/%s:streamRawPredict",
-		location, projectID, location, model)
+		location, gcProjectID, location, model)
 
 	headers := map[string]string{
 		"Authorization": "Bearer " + accessToken,
