@@ -48,3 +48,5 @@ debug
 
 # Air (live reload for Go apps) tmp directory
 tmp/
+
+main

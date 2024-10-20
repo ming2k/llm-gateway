@@ -8,8 +8,8 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -66,10 +66,21 @@ func loadEnv() error {
 
 func initDB() {
 	dbUser := os.Getenv("DB_USER")
-	dbPassword := url.QueryEscape(os.Getenv("DB_PASSWORD"))
+	dbPassword := os.Getenv("DB_PASSWORD")
 	dbHost := "localhost"
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
+
+	// 手动替换一些可能导致问题的字符
+	dbPassword = strings.ReplaceAll(dbPassword, "|", "%7C")
+	dbPassword = strings.ReplaceAll(dbPassword, "?", "%3F")
+	dbPassword = strings.ReplaceAll(dbPassword, "<", "%3C")
+	dbPassword = strings.ReplaceAll(dbPassword, ">", "%3E")
+	dbPassword = strings.ReplaceAll(dbPassword, "{", "%7B")
+	dbPassword = strings.ReplaceAll(dbPassword, "}", "%7D")
+	dbPassword = strings.ReplaceAll(dbPassword, "(", "%28")
+	dbPassword = strings.ReplaceAll(dbPassword, ")", "%29")
+
 	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		dbUser,
 		dbPassword,
