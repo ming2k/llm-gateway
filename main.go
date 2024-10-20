@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"database/sql"
 	"fmt"
@@ -131,11 +132,31 @@ func handleForwardToEndpoint(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	// TODO: setting x-api-key access time limit (with db)
-	// apiKey := r.Header.Get("x-api-key")
-	// if apiKey == "" {
-	// 	return
-	// }
+
+	// 验证 API 密钥
+	apiKey := r.Header.Get("x-api-key")
+	if apiKey == "" {
+		http.Error(w, "API key is required", http.StatusUnauthorized)
+		return
+	}
+
+	// 检查并减少 API 密钥的剩余调用次数
+	remainingCalls, err := checkAndDecrementAPIKey(apiKey)
+	if err != nil {
+		http.Error(w, "Invalid or expired API key", http.StatusUnauthorized)
+		return
+	}
+
+	if remainingCalls <= 0 {
+		http.Error(w, "API key has no remaining calls", http.StatusForbidden)
+		return
+	}
+
+	// 设置剩余调用次数的响应头
+	w.Header().Set("X-RateLimit-Remaining", fmt.Sprintf("%d", remainingCalls))
+
+	// ... [其余的代码保持不变] ...
+
 	projectID := os.Getenv("PROJECT_ID")
 
 	url := fmt.Sprintf("https://%s-aiplatform.googleapis.com/v1/projects/%s/locations/%s/publishers/anthropic/models/%s:streamRawPredict",
@@ -157,25 +178,64 @@ func handleForwardToEndpoint(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := sendRequest(url, headers, reqBody)
 	if err != nil {
-		log.Fatalf("Request failed: %v", err)
+		http.Error(w, fmt.Sprintf("Request failed: %v", err), http.StatusInternalServerError)
+		return
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	// 设置响应头
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	// 创建一个缓冲读取器
+	reader := bufio.NewReader(resp.Body)
+
+	// 逐行读取响应并写入 ResponseWriter
+	for {
+		line, err := reader.ReadBytes('\n')
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			log.Printf("Error reading from response: %v", err)
+			break
+		}
+
+		// 写入每一行到 ResponseWriter
+		_, err = w.Write(line)
+		if err != nil {
+			log.Printf("Error writing to ResponseWriter: %v", err)
+			break
+		}
+
+		// 刷新写入的内容
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
+		}
+	}
+}
+
+func checkAndDecrementAPIKey(apiKey string) (int, error) {
+	var remainingCalls int
+	err := db.QueryRow("SELECT remaining_calls FROM api_keys WHERE key = $1", apiKey).Scan(&remainingCalls)
 	if err != nil {
-		log.Fatalf("Failed to read response body: %v", err)
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("API key not found")
+		}
+		return 0, err
 	}
 
-	if resp.StatusCode == http.StatusOK {
-		fmt.Println("Request successful!")
-		fmt.Println("Response:")
-		fmt.Println(string(body))
-	} else {
-		fmt.Printf("Request failed with status code: %d\n", resp.StatusCode)
-		fmt.Println("Response:")
-		fmt.Println(string(body))
+	if remainingCalls <= 0 {
+		return 0, nil
 	}
-	// TODO response in stream form
+
+	_, err = db.Exec("UPDATE api_keys SET remaining_calls = remaining_calls - 1 WHERE key = $1", apiKey)
+	if err != nil {
+		return 0, err
+	}
+
+	return remainingCalls - 1, nil
 }
 
 func sendRequest(url string, headers map[string]string, body []byte) (*http.Response, error) {
