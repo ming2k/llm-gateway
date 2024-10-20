@@ -13,7 +13,7 @@ deploy:
     - mkdir -p ~/.ssh
     - ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
   script:
-    - ssh $SERVER_USER@$SERVER_IP 'mkdir -p ~/$CI_PROJECT_PATH'
+    - ssh $SERVER_USER@$SERVER_IP "mkdir -p ~/$CI_PROJECT_PATH"
     - scp deploy.sh $SERVER_USER@$SERVER_IP:~/$CI_PROJECT_PATH/
     - scp docker-compose.yml $SERVER_USER@$SERVER_IP:~/$CI_PROJECT_PATH/
     - scp Dockerfile $SERVER_USER@$SERVER_IP:~/$CI_PROJECT_PATH/
