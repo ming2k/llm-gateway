@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -64,11 +65,18 @@ func loadEnv() error {
 }
 
 func initDB() {
-	dbURL := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"))
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := url.QueryEscape(os.Getenv("DB_PASSWORD"))
+	dbHost := "localhost"
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		dbUser,
+		dbPassword,
+		dbHost,
+		dbPort,
+		dbName)
+
 	var err error
 	db, err = sql.Open("postgres", dbURL)
 	if err != nil {
