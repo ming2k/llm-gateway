@@ -13,7 +13,6 @@ deploy:
     - mkdir -p ~/.ssh
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
     - chmod 644 ~/.ssh/config
-    - ssh $SERVER_USER@$SERVER_IP "hostname" # test ssh
   script:
     - scp deploy.sh $SERVER_USER@$SERVER_IP:~/
     - |
