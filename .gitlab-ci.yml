@@ -15,24 +15,27 @@ deploy:
     - chmod 644 ~/.ssh/config
     - ssh $SERVER_USER@$SERVER_IP "hostname" # test ssh
   script:
+    - echo $CI_PROJECT_PATH
+    - ssh $SERVER_USER@$SERVER_IP "echo $CI_PROJECT_PATH"
     - ssh $SERVER_USER@$SERVER_IP "mkdir -p ~/$CI_PROJECT_PATH"
     - scp deploy.sh $SERVER_USER@$SERVER_IP:~/$CI_PROJECT_PATH/
     - scp docker-compose.yml $SERVER_USER@$SERVER_IP:~/$CI_PROJECT_PATH/
     - scp Dockerfile $SERVER_USER@$SERVER_IP:~/$CI_PROJECT_PATH/
     - |
-      ssh $SERVER_USER@$SERVER_IP "
+      GC_PRIVATE_KEY_BASE64=$(echo "$GC_PRIVATE_KEY" | base64 -w 0)
+      ssh $SERVER_USER@$SERVER_IP << EOF
         cd ~/$CI_PROJECT_PATH
         chmod +x deploy.sh
-        APP_PORT=${APP_PORT} \
-        DB_USER=${DB_USER} \
-        DB_PASSWORD=${DB_PASSWORD} \
-        DB_NAME=${DB_NAME} \
-        DB_PORT=${DB_PORT} \
-        GC_PROJECT_ID=${GC_PROJECT_ID} \
-        GC_PRIVATE_KEY_ID=${GC_PRIVATE_KEY_ID} \
-        GC_PRIVATE_KEY='${GC_PRIVATE_KEY}' \
-        GC_CLIENT_EMAIL=${GC_CLIENT_EMAIL} \
+        export APP_PORT='${APP_PORT}'
+        export DB_USER='${DB_USER}'
+        export DB_PASSWORD='${DB_PASSWORD}'
+        export DB_NAME='${DB_NAME}'
+        export DB_PORT='${DB_PORT}'
+        export GC_PROJECT_ID='${GC_PROJECT_ID}'
+        export GC_PRIVATE_KEY_ID='${GC_PRIVATE_KEY_ID}'
+        export GC_PRIVATE_KEY=\$(echo '${GC_PRIVATE_KEY_BASE64}' | base64 -d)
+        export GC_CLIENT_EMAIL='${GC_CLIENT_EMAIL}'
         ./deploy.sh
-      "
+      EOF
   only:
     - main
