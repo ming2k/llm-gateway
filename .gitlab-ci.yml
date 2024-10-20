@@ -1,0 +1,26 @@
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - apk add --no-cache openssh-client bash
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+  script:
+    - scp deploy.sh $SERVER_USER@$SERVER_IP:~/app/
+    - scp docker-compose.yml $SERVER_USER@$SERVER_IP:~/app/
+    - scp Dockerfile $SERVER_USER@$SERVER_IP:~/app/
+    - |
+      ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "
+        cd ~/app
+        chmod +x deploy.sh
+        DB_USER=${DB_USER} DB_PASSWORD=${DB_PASSWORD} DB_NAME=${DB_NAME} DB_PORT=${DB_PORT} APP_PORT=${APP_PORT} ./deploy.sh
+      "
+  only:
+    - main
