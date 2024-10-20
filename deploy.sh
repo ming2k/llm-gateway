@@ -25,6 +25,6 @@ docker compose -f ./$APP_NAME/docker-compose.yml down
 
 # Start new container
 echo "Starting new containers..."
-docker compose up -f ./$APP_NAME/docker-compose.yml -d
+docker compose -f ./$APP_NAME/docker-compose.yml up -d
 
 echo "Deployment completed successfully."
