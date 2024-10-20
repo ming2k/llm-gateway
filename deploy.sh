@@ -21,10 +21,10 @@ docker build -t $APP_NAME:latest ./$APP_NAME
 
 # Stop old container
 echo "Stopping old containers..."
-docker compose down -f ./$APP_NAME/docker-compose.yml
+docker compose -f ./$APP_NAME/docker-compose.yml down
 
 # Start new container
 echo "Starting new containers..."
-docker compose up -d -f ./$APP_NAME/docker-compose.yml
+docker compose up -f ./$APP_NAME/docker-compose.yml -d
 
 echo "Deployment completed successfully."
