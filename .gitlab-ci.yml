@@ -18,7 +18,6 @@ deploy:
     - |
       GC_PRIVATE_KEY_BASE64=$(echo "$GC_PRIVATE_KEY" | base64 -w 0)
       ssh $SERVER_USER@$SERVER_IP << EOF
-        cd ~/$CI_PROJECT_NAME
         chmod +x deploy.sh
         export APP_PORT='${APP_PORT}'
         export APP_NAME='${CI_PROJECT_NAME}'
