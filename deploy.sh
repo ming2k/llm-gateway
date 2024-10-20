@@ -1,19 +1,13 @@
 #!/bin/bash
 
 REPO_URL="https://gitlab.com/ming2k/llm-gateway.git"
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-
-# Check if the repository directory exists
-if [ -d "$REPO_DIR" ]; then
-    echo "Repository directory exists. Pulling latest changes..."
-    cd "$REPO_DIR"
-    git pull
-    cd ..
-else
-    echo "Repository directory does not exist. Cloning..."
-    git clone "$REPO_URL"
+# if APP_NAME exists, remove the directory
+if [ -d "$APP_NAME" ]; then
+    rm -rf $APP_NAME
 fi
+
+git clone "$REPO_URL"
 
 # Build new image
 echo "Building Docker image..."
