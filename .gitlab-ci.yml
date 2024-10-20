@@ -7,11 +7,13 @@ deploy:
   services:
     - docker:dind
   before_script:
-    - apk add --no-cache openssh-client bash
+    - "command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )"
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
+    - ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
+    # - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    # - chmod 644 ~/.ssh/config
   script:
     - scp deploy.sh $SERVER_USER@$SERVER_IP:~/app/
     - scp docker-compose.yml $SERVER_USER@$SERVER_IP:~/app/
