@@ -40,15 +40,16 @@ func init() {
 }
 
 func loadEnv() error {
-	if err := godotenv.Load(); err != nil {
-		return fmt.Errorf("error loading .env file: %w", err)
-	}
+	// try to get the .env file from the current directory
+	// if it doesn't exist, use the system's environment
+	_ = godotenv.Load()
+
 	requiredEnvs := []string{
 		"APP_PORT",
-		"PROJECT_ID",
-		"CLIENT_EMAIL",
-		"PRIVATE_KEY_ID",
-		"PRIVATE_KEY",
+		"GC_PROJECT_ID",
+		"GC_CLIENT_EMAIL",
+		"GC_PRIVATE_KEY_ID",
+		"GC_PRIVATE_KEY",
 		"DB_USER",
 		"DB_PASSWORD",
 		"DB_NAME",
@@ -92,10 +93,10 @@ func initDB() {
 
 func main() {
 	// Get access token
-	clientEmail := os.Getenv("CLIENT_EMAIL")
-	privateKeyID := os.Getenv("PRIVATE_KEY_ID")
-	privateKey := os.Getenv("PRIVATE_KEY")
-	newAccessToken, err := GetAccessToken(clientEmail, privateKey, privateKeyID)
+	gcClientEmail := os.Getenv("GC_CLIENT_EMAIL")
+	gcPrivateKeyID := os.Getenv("GC_PRIVATE_KEY_ID")
+	gcPrivateKey := os.Getenv("GC_PRIVATE_KEY")
+	newAccessToken, err := GetAccessToken(gcClientEmail, gcPrivateKey, gcPrivateKeyID)
 	if err != nil {
 		fmt.Printf("Error getting access token: %v\n", err)
 		return
@@ -157,7 +158,7 @@ func handleForwardToEndpoint(w http.ResponseWriter, r *http.Request) {
 
 	// ... [其余的代码保持不变] ...
 
-	projectID := os.Getenv("PROJECT_ID")
+	projectID := os.Getenv("GC_PROJECT_ID")
 
 	url := fmt.Sprintf("https://%s-aiplatform.googleapis.com/v1/projects/%s/locations/%s/publishers/anthropic/models/%s:streamRawPredict",
 		location, projectID, location, model)

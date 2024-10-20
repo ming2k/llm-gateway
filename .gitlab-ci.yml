@@ -12,17 +12,25 @@ deploy:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-    # - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
-    # - chmod 644 ~/.ssh/config
   script:
-    - scp deploy.sh $SERVER_USER@$SERVER_IP:~/app/
-    - scp docker-compose.yml $SERVER_USER@$SERVER_IP:~/app/
-    - scp Dockerfile $SERVER_USER@$SERVER_IP:~/app/
+    - ssh $SERVER_USER@$SERVER_IP 'mkdir -p ~/$CI_PROJECT_PATH'
+    - scp deploy.sh $SERVER_USER@$SERVER_IP:~/$CI_PROJECT_PATH/
+    - scp docker-compose.yml $SERVER_USER@$SERVER_IP:~/$CI_PROJECT_PATH/
+    - scp Dockerfile $SERVER_USER@$SERVER_IP:~/$CI_PROJECT_PATH/
     - |
-      ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "
-        cd ~/app
+      ssh $SERVER_USER@$SERVER_IP "
+        cd ~/$CI_PROJECT_PATH
         chmod +x deploy.sh
-        DB_USER=${DB_USER} DB_PASSWORD=${DB_PASSWORD} DB_NAME=${DB_NAME} DB_PORT=${DB_PORT} APP_PORT=${APP_PORT} ./deploy.sh
+        APP_PORT=${APP_PORT} \
+        DB_USER=${DB_USER} \
+        DB_PASSWORD=${DB_PASSWORD} \
+        DB_NAME=${DB_NAME} \
+        DB_PORT=${DB_PORT} \
+        GC_PROJECT_ID=${GC_PROJECT_ID} \
+        GC_PRIVATE_KEY_ID=${GC_PRIVATE_KEY_ID} \
+        GC_PRIVATE_KEY='${GC_PRIVATE_KEY}' \
+        GC_CLIENT_EMAIL=${GC_CLIENT_EMAIL} \
+        ./deploy.sh
       "
   only:
     - main
